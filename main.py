@@ -1,12 +1,13 @@
-from utils import read_video, save_video
-from trackers import Tracker
+import streamlit as st
 import cv2
 import numpy as np
+from utils import read_video, save_video
+from trackers import Tracker
 from team_assigner import TeamAssigner
 
-def main():
-    # Read Video
-    video_frames = read_video('input videos/1.mp4')
+def process_video(video_file):
+    # Read Video from uploaded file
+    video_frames = read_video(video_file)
 
     # Initialize Tracker
     tracker = Tracker('models/yolov8_trained_best_model.pt')
@@ -29,8 +30,26 @@ def main():
 
     output_video_frames = tracker.draw_annotations(video_frames, tracks)
 
-    #Save Video
-    save_video(output_video_frames, 'output_videos/Results.mp4')
+    # Save Video to a buffer
+    output_video_path = 'output_videos/Results.mp4'
+    save_video(output_video_frames, output_video_path)
+    
+    return output_video_path
+
+def main():
+    st.title('Video Processing with Tracker and Team Assigner')
+
+    st.write('Upload a video file for processing:')
+    video_file = st.file_uploader("Choose a video file", type=["mp4", "avi", "mov"])
+    
+    if video_file is not None:
+        st.video(video_file, format='video/mp4')
+        
+        st.write('Processing video...')
+        output_video_path = process_video(video_file)
+        
+        st.write('Processed video:')
+        st.video(output_video_path, format='video/mp4')
 
 if __name__ == '__main__':
     main()
