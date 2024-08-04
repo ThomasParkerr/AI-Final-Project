@@ -27,6 +27,8 @@ def main():
             tracks['players'][frame_num][player_id]['team'] = team 
             tracks['players'][frame_num][player_id]['team_color'] = team_assigner.team_colors[team]
 
+    output_video_frames = tracker.draw_annotations(video_frames, tracks)
+
     #Save Video
     save_video(output_video_frames, 'output_videos/Results.mp4')
 
