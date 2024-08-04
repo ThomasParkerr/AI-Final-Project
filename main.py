@@ -1,12 +1,15 @@
-from utils import read_video, save_video
-from trackers import Tracker
+import streamlit as st
 import cv2
 import numpy as np
+import tempfile
+import os
+from utils import read_video, save_video
+from trackers import Tracker
 from team_assigner import TeamAssigner
 
-def main():
+def process_video(video_path):
     # Read Video
-    video_frames = read_video('input videos/1.mp4')
+    video_frames = read_video(video_path)
 
     # Initialize Tracker
     tracker = Tracker('models/yolov8_trained_best_model.pt')
@@ -29,8 +32,36 @@ def main():
 
     output_video_frames = tracker.draw_annotations(video_frames, tracks)
 
-    #Save Video
-    save_video(output_video_frames, 'output_videos/Results.mp4')
+    return output_video_frames
+
+def main():
+    st.title("Sports Video Player Separation")
+
+    uploaded_file = st.file_uploader("Choose a video file", type=["mp4", "avi", "mov"])
+
+    if uploaded_file is not None:
+        # Save the uploaded file to a temporary file
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.mp4') as tmp_file:
+            tmp_file.write(uploaded_file.read())
+            tmp_file_path = tmp_file.name
+        
+        # Process the video
+        with st.spinner('Processing video...'):
+            output_video_frames = process_video(tmp_file_path)
+
+        # Save the output video to a temporary file
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.mp4') as tmp_output_file:
+            output_video_path = tmp_output_file.name
+            save_video(output_video_frames, output_video_path)
+        
+        st.success('Processing complete!')
+
+        # Provide download link for the processed video
+        st.video(output_video_path)
+
+        # Clean up temporary files
+        os.unlink(tmp_file_path)
+        os.unlink(output_video_path)
 
 if __name__ == '__main__':
     main()
